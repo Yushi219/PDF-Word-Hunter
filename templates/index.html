@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Word Hunter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        @font-face {
+            font-family: 'NimbusMonL';
+            src: url('./fonts/NimbusMonL-Regu.woff2') format('woff2'),
+                 url('./fonts/NimbusMonL-Regu.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+    </style>
+</head>
+<body>
+    <h1>PDF Word Hunter</h1>
+<form action="/" method="post" enctype="multipart/form-data" class="form-container">
+    <div class="form-group">
+        <div class="form-section">
+            <label for="pdf_path" class="form-label">PDF File Path:</label>
+            <input type="file" id="pdf_path" name="pdf_file" accept=".pdf" required {% if pdf_path %}value="{{ pdf_path }}" {% endif %}>
+            <span id="file-button" class="file-button">Choose File</span>
+            <span id="file-name" class="file-name">No file chosen</span>
+        </div>
+        <div class="form-section">
+            <label for="keyword" class="form-label">Keyword:</label>
+            <input type="text" id="keyword" name="keyword" required>
+            <button type="submit" class="button">Capture</button>
+        </div>
+        <div class="form-section">
+            <button type="button" id="export-button" class="button">Export Excel</button>
+        </div>
+    </div>
+</form>
+
+    
+
+    {% if results or session.get('results') %}
+    <table>
+        <thead>
+            <tr>
+                <th>PAGE</th>
+                <th>SPECIFICATION SECTION NAME</th>
+                <th>SPECIFICATION SECTION NUMBER</th>
+                <th>TYPE</th>
+                <th>REFERENCE LINE</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in results or session.get('results', []) %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+                <td>{{ row[4] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+
+    
+</body>
+<script>
+    document.getElementById("file-button").addEventListener("click", function() {
+        document.getElementById("pdf_path").click();
+    });
+
+    document.getElementById("pdf_path").addEventListener("change", function() {
+        if (this.files && this.files[0]) {
+            document.getElementById("file-name").innerText = this.files[0].name;
+        }
+    });
+
+    if (performance.navigation.type === 1) {
+        // Clear the session storage when the page is refreshed
+        sessionStorage.removeItem('results');
+    }
+
+    document.getElementById("export-button").addEventListener("click", function() {
+        window.location.href = "/export";
+    });
+
+</script>
+</html>
+
+
