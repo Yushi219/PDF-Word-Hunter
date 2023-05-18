@@ -26,11 +26,22 @@
             <span id="file-name" class="file-name">No file chosen</span>
         </div>
         <div class="form-section">
+            <label for="search_rule" class="form-label">Sensitive Rule:</label>
+            <select id="search_rule" name="search_rule">
+                <option value="Case and Symbols Sensitive" {% if search_rule == 'Case and Symbols Sensitive' %}selected{% endif %}>Case and Symbols Sensitive</option>
+                <option value="Case Sensitive" {% if search_rule == 'Case Sensitive' %}selected{% endif %}>Case Sensitive</option>
+                <option value="Insensitive" {% if search_rule == 'Insensitive' %}selected{% endif %}>Insensitive</option>
+            </select>
+        </div>        
+        <div class="form-section">
             <label for="keyword" class="form-label">Keyword:</label>
             <input type="text" id="keyword" name="keyword" required>
             <button type="submit" class="button">Capture</button>
-        </div>
+        </div>   
         <div class="form-section">
+            <span id="status"></span>
+        </div>
+        <div class="form-section button-section">
             <button type="button" id="export-button" class="button">Export Excel</button>
         </div>
     </div>
@@ -38,7 +49,7 @@
 
     
 
-    {% if results or session.get('results') %}
+{% if results or session.get('results') %}
     <table>
         <thead>
             <tr>
@@ -63,6 +74,13 @@
     </table>
 {% endif %}
 
+{% if session['status_message'] %}
+    <script>
+        document.getElementById("status").textContent = "{{ session['status_message'] }}";
+    </script>
+{% endif %}
+
+
     
 </body>
 <script>
@@ -81,8 +99,15 @@
         sessionStorage.removeItem('results');
     }
 
-    document.getElementById("export-button").addEventListener("click", function() {
-        window.location.href = "/export";
+    var dotInterval;
+    document.querySelector("form").addEventListener("submit", function(event) {
+        var dotCount = 0;
+        clearInterval(dotInterval);  // Make sure to clear any existing intervals
+        dotInterval = setInterval(function() {
+            dotCount = (dotCount + 1) % 4;
+            var dots = '.'.repeat(dotCount);
+            document.getElementById("status").textContent = " Casting A Net" + dots;
+        }, 500);
     });
 
 </script>

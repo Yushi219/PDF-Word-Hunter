@@ -37,15 +37,26 @@ h1 {
     flex: 1;
 }
 
+.button-section {
+    flex: none;
+}
+
 .form-section:nth-child(1) {
     justify-content: left;
 }
 .form-section:nth-child(2) {
-    justify-content: center;
+    justify-content: left;
 }
 .form-section:nth-child(3) {
+    justify-content: left;
+}
+.form-section:nth-child(4) {
+    justify-content: left;
+}
+.form-section:nth-child(5) {
     justify-content: right;
 }
+
 
 .form-label {
     font-weight: bold;

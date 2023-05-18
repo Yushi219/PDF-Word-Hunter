@@ -1,13 +1,10 @@
 import os
 import re
 import tempfile
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, session
 import pdfplumber
 import pandas as pd
 from werkzeug.utils import secure_filename
-from flask import Flask, render_template, request, send_file, session
-from flask import Flask, make_response
-from flask import Response
 
 
 app = Flask(__name__, static_url_path='/static')
@@ -22,55 +19,78 @@ def add_cache_control(response):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if 'results' not in session:
-        session['results'] = []  # Initialize an empty results list
+        session['results'] = []
 
     if request.method == 'POST':
         pdf_file = request.files['pdf_file']
         keyword = request.form['keyword']
+        search_rule = request.form.get('search_rule', 'Case and Symbols Sensitive')
+        session['search_rule'] = search_rule
 
         if pdf_file:
             temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
             pdf_file.save(temp_file.name)
             session['pdf_path'] = temp_file.name
 
-        results = search_pdf(keyword, session.get('pdf_path', ''))
+        results = search_pdf(keyword, session.get('pdf_path', ''), search_rule)
         generate_excel(results, os.path.dirname(session.get('pdf_path', '')), keyword)
 
+        session['status_message'] = ' Capture Success!'
+
         if pdf_file:
-            os.close(temp_file.fileno())  # Explicitly close the file descriptor
+            os.close(temp_file.fileno())
             os.remove(temp_file.name)
 
         session['results'] = results
     
     session['keyword'] = keyword
 
-    return render_template('index.html', results=session.get('results', []), pdf_path=session.get('pdf_path', ''))
+    return render_template('index.html', results=session.get('results', []), pdf_path=session.get('pdf_path', ''), search_rule=session.get('search_rule', 'Case and Symbols Sensitive'))
 
 
-
-
-def search_pdf(keyword, pdf_path):
+def search_pdf(keyword, pdf_path, search_rule):
     results = []
 
     with pdfplumber.open(pdf_path) as pdf:
         for i, page in enumerate(pdf.pages):
-            text = page.extract_text()
+            original_text = page.extract_text()
 
-            if keyword in text:
-                footer_left, footer_right = get_footers(text)
+            if search_rule == "Case and Symbols Sensitive":
+                search_text = original_text
+                search_keyword = keyword
+            elif search_rule == "Case Sensitive":
+                search_text, indices = remove_symbols_with_indices(original_text)
+                search_keyword = re.sub(r'[^\w\s]', '', keyword)
+            else:  # Insensitive
+                search_text, indices = remove_symbols_with_indices(original_text.lower())
+                search_keyword = re.sub(r'[^\w\s]', '', keyword).lower()
 
-                for match in re.finditer(re.escape(keyword), text):
+            if search_keyword in search_text:
+                footer_left, footer_right = get_footers(original_text)
+
+                for match in re.finditer(re.escape(search_keyword), search_text):
                     start, end = match.span()
-                    line_parts = text[:end].split('\n')[-1], text[end:].split('\n')[0]
+                    if search_rule != "Case and Symbols Sensitive":
+                        start, end = indices[start], indices[end-1]+1
+                    line_parts = original_text[:end].split('\n')[-1], original_text[end:].split('\n')[0]
                     line = ' '.join(line_parts)
 
                     type_part = line_parts[0][:start].split('.')[-1].strip()
-                    if type_part[-1] == ':':
+                    if type_part and type_part[-1] == ':':
                         type_part = type_part[:-1]
 
                     results.append([i+1, footer_left, footer_right, type_part, line])
 
     return results
+
+def remove_symbols_with_indices(text):
+    search_text = []
+    indices = []
+    for i, c in enumerate(text):
+        if c.isalnum() or c.isspace():
+            search_text.append(c)
+            indices.append(i)
+    return ''.join(search_text), indices
 
 
 def get_footers(page_text):
@@ -93,7 +113,6 @@ def generate_excel(results, pdf_path, keyword):
     output_directory = os.path.dirname(session.get('pdf_path', ''))
     output_filename = os.path.join(pdf_path, f"List of {session.get('keyword', '')}.xlsx")
   
-
     i = 1
     while os.path.exists(output_filename):
         output_filename = os.path.join(pdf_path, f"List of {keyword}({i}).xlsx")
@@ -119,7 +138,7 @@ def export_excel():
         response.headers['Content-Disposition'] = f'attachment; filename="{output_filename}"'
 
     return response
-    
+
 if __name__ == '__main__':
     app.secret_key = 'PDFWordHunterT1'  
     app.run(debug=True)
