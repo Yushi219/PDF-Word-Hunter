@@ -16,19 +16,20 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.10.6' 
+          python-version: '3.10.6'
 
       - name: Set up virtual environment
         run: python -m venv venv
 
       - name: Activate virtual environment
-        run: source venv/bin/activate
+        run: |
+          . venv/bin/activate
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
       - name: Build and Deploy
         run: |
-          python app.py
-
-
+          export FLASK_APP=app.py
+          export FLASK_ENV=development
+          flask run --host=0.0.0.0 --port=5000
