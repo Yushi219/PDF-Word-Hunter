@@ -10,6 +10,7 @@ from flask import Response
 
 
 app = Flask(__name__, static_url_path='/static')
+app.secret_key = os.environ.get('SECRET_KEY', 'default_secret_key')
 
 @app.after_request
 def add_cache_control(response):
