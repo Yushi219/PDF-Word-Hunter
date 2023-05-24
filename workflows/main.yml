@@ -1,4 +1,4 @@
-name: CI/CD
+name: Deploy to Production
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,5 +31,6 @@ jobs:
       - name: Build and Deploy
         run: |
           export FLASK_APP=app.py
-          export FLASK_ENV=development
-          flask run --host=0.0.0.0 --port=5000
+          export FLASK_ENV=production
+          export SECRET_KEY='PDFWordHunterT1'
+          gunicorn app:app --bind 0.0.0.0:5000
