@@ -17,5 +17,4 @@ PDF Word Hunter is an application for extracting specific words from PDF files. 
 - pandas library
 
 ## Getting Started
-Local:Open setup.bat
-Github: (Not finished)https://yushi219.github.io/PDF-Word-Hunter/
+URL:https://pai-pdf-word-hunter.azurewebsites.net/
