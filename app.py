@@ -10,7 +10,8 @@ from flask import Response
 
 
 app = Flask(__name__, static_url_path='/static')
-app.secret_key = os.environ.get('SECRET_KEY', 'default_secret_key')
+app.secret_key = 'PDFWordHunterT1'
+# app.secret_key = os.environ.get('SECRET_KEY', 'default_secret_key')
 
 @app.after_request
 def add_cache_control(response):
@@ -146,5 +147,5 @@ def export_excel():
     return response
 
 if __name__ == '__main__':
-    app.secret_key = 'PDFWordHunterT1'  
+      
     app.run(debug=True)
