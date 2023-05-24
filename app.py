@@ -5,6 +5,8 @@ from flask import Flask, render_template, request, send_file, session
 import pdfplumber
 import pandas as pd
 from werkzeug.utils import secure_filename
+from flask import Response
+
 
 
 app = Flask(__name__, static_url_path='/static')
@@ -18,6 +20,9 @@ def add_cache_control(response):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+
+    keyword = request.form.get('keyword', '')
+
     if 'results' not in session:
         session['results'] = []
 
