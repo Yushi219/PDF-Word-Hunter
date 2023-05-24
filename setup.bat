@@ -1,9 +1,0 @@
-@echo off
-echo Setting up environment...
-python -m venv venv
-call venv\Scripts\activate.bat
-echo Installing dependencies...
-pip install -r requirements.txt
-echo Starting the server...
-python app.py
-pause
